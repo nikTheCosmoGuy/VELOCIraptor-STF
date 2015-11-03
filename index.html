@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Velociraptor-stf : ">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Velociraptor-stf</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/pelahi/VELOCIraptor-STF">View on GitHub</a>
+
+          <h1 id="project_title">Velociraptor-stf</h1>
+          <h2 id="project_tagline"></h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/pelahi/VELOCIraptor-STF/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/pelahi/VELOCIraptor-STF/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1></h1>
+
+<hr>
+
+<p>/   _____/__    <strong><em>/___</em></strong> __ __   _____/  |_ __ _________   ____
+ _____  \   |    |  _  __ \  |  _/ <strong><em>\   _</em>\  |  _  __ _/ __ \
+ /        \  |    |   |  | \/  |  /\  _</strong>|  | |  |  /|  | \/\  <strong><em>/
+/____</em></strong>  /  |____|   |<strong>|  |__</strong>/  ___  &gt;<strong>| |__</strong>/ |<strong>|    _</strong>  &gt;
+        \/                              \/                        \/
+___________.__            .___
+_   _____/|<strong>| __</strong>    <strong>| <em>/________</em></strong>
+ |    <strong>)  |  |/    \  / __ |/ __ _  __ \
+ |     \   |  |   |  \/ /<em>/ \  __</em>/|  | \/
+ _</strong>  /   |<strong>|_</strong>|  /____ |___  &gt;<strong>|
+     \/            \/      \/    \/
+    ___   _____________________________</strong> ___
+   /  /  /   _____/__    <strong><em>/\</em>   ___</strong>/ \  \
+  /  /   _____  \   |    |    |    <strong>)    \  \
+ (  (    /        \  |    |    |     \      )  )
+  \  \  /_____</strong>  /  |____|    ___  /     /  /
+   __\         \/                 \/     /__/                        </p>
+
+<p>____   _______________.____    ________  _________ .___                      __
+\   \ /   /_   _____/|    |   _____  \ _   ___ |   |___________  _______/  |_  ___________
+ \   Y   /  |    <strong>)_ |    |    /   |   \/    \  \/|   _  __ \</strong>  \ ____ \   <strong>\/  _ _  __ \
+  \     /   |        |    |_</strong>/    |    \     ___|   ||  | \// __ |  |<em>&gt; &gt;  | (  &lt;</em>&gt; )  | \/
+   ___/   /_______  /|_______ _______  /______  /<em>__||_</em>|  (____  /   <strong>/|</strong>|  ____/|<strong>|
+                   \/         \/       \/        \/                \/|</strong>|</p>
+
+<h1></h1>
+
+<pre><code>VELOCIraptor/STructure Finder
+</code></pre>
+
+<h1></h1>
+
+<pre><code>developed by:
+</code></pre>
+
+<h1></h1>
+
+<pre><code>Pascal Jahan Elahi (continuously)
+</code></pre>
+
+<h1></h1>
+
+<pre><code>Content
+(for more information type make doc in main dir and in NBodylib dir and
+see documents in the doc directory)
+</code></pre>
+
+<h1></h1>
+
+<pre><code>src/        contains main source code for the algorithm
+analysis/   contains routines that can be used to analyze the (sub)structures found in a
+            simulation. Typically, these routines read in the Nbody data and then calculate
+            a variety of properties
+doc/        contains Doxygen generated latex and html file of code
+NBodylib/   contains library of objects and routines used by algorithm (can also be used by
+            other routines)
+NBodylib/lib library containing libMath, libNBody, libKD, libAnalysis, libCosmology,
+            libInitCond
+NBodylib/include/ include files
+NBodylib/src/ contains source code for the libraries
+NBodylib/doc/ contains Doxygen generated latex and html file of code
+
+Makefile.config   contains compilation flags
+</code></pre>
+
+<h1></h1>
+
+<pre><code>Compiling (see documentation for more information)
+</code></pre>
+
+<h1></h1>
+
+<pre><code>If you use the GNU C compiler version 4.0 or above type "make" at the command prompt.
+For extra documentation, type make doc, which will produce html and latex documents using
+Doxygen. This will be located in doc/html/index.html and doc/latex/refman.tex
+This will contain extra information on what configuration options can be changed in the
+Makefile.config file.
+A quick summary of flags that can be adjusted are
+mpi compilers, openmp flags, precision used (floats versus doubles, ints versus longs).
+
+STF and all variants do not support non-Unix environments. (Mac OS X is fine; Windows is not).
+</code></pre>
+
+<h1></h1>
+
+<pre><code>Running (see documentation for more information)
+</code></pre>
+
+<h1></h1>
+
+<pre><code>Running is as simple as
+./bin/stf -i input -s nsnaportype -C configfile
+a sample of a configuation file is in examples
+for mpi enabled executable
+mpirun -np mutipleoftwo ./bin/stf
+Note that at the moment, mpirun assumes that a single structure can fit onto the shared
+memory local to the mpi thread. If larger haloes are to be analyzed, it is suggested that
+the iSingleHalo option be set to 1, and the analysis is done on a shared memory machine
+with enough memory. A more complete version capable of handling large structures across
+mpi domains that are then searched for substructures is in the works.
+
+Outputs:
+
+i) Structure list
+The code will produce a list of structure ids (two different formats) and a file listing
+the properites of all structures found. These outputs are outname.fof.grp
+and outname.sublevels.fof.grp (or pglist instead of fof.grp) which will list only haloes
+(or level one hierarchy objects) and all structures found respectively. Note that the fof.grp
+format is collected from all MPI threads and is only ascii. The pglist format will be written
+in parallel, one for each thread, such that one has pglist.threadID. This format can be ascii
+or binary.
+
+ii) Field Structure / Substructure relationships
+The code will produce a list of the number of levels found in the hierarchy and
+then for each object, the id, its parent id (which is -1 if it is a field structure)
+and all direct substructures (number and substruture ids). This can be in ascii and binary
+formats and is written to outname.hierarchy. 
+</code></pre>
+
+<h1></h1>
+
+<pre><code>Altering IO for other file types (see documentation for more information)
+</code></pre>
+
+<h1></h1>
+
+<pre><code>Naturally, not all simulations will be in the io formats already written. An example of
+several implemented io routines are in the src directory. The routine needs to load all
+the appropriate date into a Particle array.
+</code></pre>
+
+<h1></h1>
+
+<pre><code>Associated analysis tools:
+</code></pre>
+
+<h1></h1>
+
+<pre><code>Halotree: 
+--------------------------------------------------------------------------------------------
+Tool builds a halo merger tree (and also a full graph) using a file containing the list of 
+base file names of catalog files prodcued by VELOCIraptor.
+
+Baryons
+--------------------------------------------------------------------------------------------
+Tool designed to calculate numerous properties and profiles based on the input from
+VELOCIraptor catalogs.
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Velociraptor-stf maintained by <a href="https://github.com/pelahi">pelahi</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
