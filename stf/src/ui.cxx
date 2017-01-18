@@ -132,6 +132,11 @@ void usage(void)
     \section localdensityconfig Parameters related to local density estimator. 
     See \ref localfield.cxx, \ref bgfield.cxx & \ref localbgcomp.cxx for more details
 
+    \arg <b> \e Local_velocity_density_function_calcflag </b> How the local velocity density function should be calculated. 
+        - \b 1 is use all particles but limit calculation of LVDF to those particles in field structures. 
+        - \b 2 is if you want to calculate the LVDF for partiles in (sub)haloes using particles resident in the (sub)halo 
+        - \b 0 is use all paritcles and calculate the LVDF for all particles 
+
     \arg <b> \e Nsearch_velocity </b> number of velocity neighbours used to calculate velocity density, adjust \ref Options.Nvel (default is 32) \n
     \arg <b> \e Nsearch_physical </b> number of physical neighbours searched for Nv to calculate velocity density  \ref Options.Nsearch (default is 512) \n
     \arg <b> \e Cell_fraction </b> fraction of a halo contained in a subvolume used to characterize the background  \ref Options.Ncellfac \n
@@ -333,6 +338,8 @@ void GetParamFile(Options &opt)
                         opt.uinfo.unbindflag = atoi(vbuff);
                     else if (strcmp(tbuff, "Baryon_searchflag")==0)
                         opt.iBaryonSearch = atoi(vbuff);
+                    else if (strcmp(tbuff, "Local_velocity_density_function_calcflag")==0)
+                        opt.iLocalVelDenCalc = atoi(vbuff);
                     else if (strcmp(tbuff, "CMrefadjustsubsearch_flag")==0)
                         opt.icmrefadjust = atoi(vbuff);
                     else if (strcmp(tbuff, "Halo_core_search")==0)
@@ -506,9 +513,32 @@ inline void ConfigCheck(Options &opt)
 #endif
         cerr<<"Conflict in config file: both gas/star/etc particle type search AND the separate baryonic (gas,star,etc) search flag are on. Check config\n";
 #ifdef USEMPI
-            MPI_Abort(MPI_COMM_WORLD,8);
+        MPI_Abort(MPI_COMM_WORLD,8);
 #else
-            exit(8);
+        exit(8);
+#endif
+    }
+    if (opt.partsearchtype<PSTALL || opt.partsearchtype>PSTMAX) {
+#ifdef USEMPI
+    if (ThisTask==0)
+#endif
+        cerr<<"Particle searchtype invalid choice. Check allvars.h for implemented search types.\n";
+#ifdef USEMPI
+        MPI_Abort(MPI_COMM_WORLD,8);
+#else
+        exit(8);
+#endif
+    }
+    if (opt.iLocalVelDenCalc<LVDFALL || opt.iLocalVelDenCalc>LVDFHALO) {
+#ifdef USEMPI
+    if (ThisTask==0)
+#endif
+        cerr<<"Invalid choice of type of local velocity density function calculation. Either all ("<<LVDFALL<<"), use all but only for particles in structures ("<<LVDFSTRUC<<")";
+        cerr<<" or everytime a (sub)halo is found and only using particles in (sub)halo ("<<LVDFHALO<<").\n";
+#ifdef USEMPI
+        MPI_Abort(MPI_COMM_WORLD,8);
+#else
+        exit(8);
 #endif
     }
     if (opt.HaloMinSize==-1) opt.HaloMinSize=opt.MinSize;
@@ -546,6 +576,19 @@ inline void ConfigCheck(Options &opt)
             case PSTBH: 
                 cout<<"Searching BH particles?! Really? Are there enough?"<<endl;
                 break;
+    }
+    switch(opt.iLocalVelDenCalc)
+    {
+        case LVDFALL:
+            cout<<"Calculating local velocity densities for all particles, be they in structures or not"<<endl;
+            break;
+        case LVDFSTRUC:
+            cout<<"Calculating local velocity densities for all only particles in field objects but using the entire particle field"<<endl;
+            if (opt.iBaryonSearch>0) cout<<"Also treating DM/baryons separately so only calculating densities for DM particles "<<endl;
+            break;
+        case LVDFHALO:
+            cout<<"Calculating local velocity densities each time a (sub)halo is found using particles beloning to that object only"<<endl;
+            break;
     }
     if (opt.fofbgtype==FOF6D) cout<<"Field objects found with 3d FOF"<<endl;
     else if (opt.fofbgtype==FOF6D) cout<<"Field objects found with initial 3d FOF then use single dispersion to find 6d FOFs"<<endl;

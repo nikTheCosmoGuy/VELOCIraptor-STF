@@ -86,25 +86,25 @@ Int_t* SearchFullSet(Options &opt, const Int_t nbodies, Particle *&Part, Int_t &
 #ifndef USEMPI
     totalgroups=numgroups;
     //if this flag is set, calculate localfield value here for particles possibly resident in a field structure
-#ifdef STRUCDEN
-    if (numgroups>0) {
-    storetype=new Int_t[nbodies];
-    for (i=0;i<nbodies;i++) storetype[i]=Part[i].GetType();
-    //if not searching all particle then searching for baryons associated with substructures, then set type to group value
-    //so that velocity density just calculated for particles in groups (type>0)
-    if (!(opt.iBaryonSearch>=1 && opt.partsearchtype==PSTALL)) for (i=0;i<nbodies;i++) Part[i].SetType(pfof[Part[i].GetID()]);
-    //otherwise set type to group value for dark matter
-    else {
-        for (i=0;i<nbodies;i++) {
-            if (Part[i].GetType()==DARKTYPE) Part[i].SetType(pfof[Part[i].GetID()]);
-            else Part[i].SetType(-1);
+    if (opt.iLocalVelDenCalc==LVDFSTRUC) {
+        if (numgroups>0) {
+        storetype=new Int_t[nbodies];
+        for (i=0;i<nbodies;i++) storetype[i]=Part[i].GetType();
+        //if not searching all particle then searching for baryons associated with substructures, then set type to group value
+        //so that velocity density just calculated for particles in groups (type>0)
+        if (!(opt.iBaryonSearch>=1 && opt.partsearchtype==PSTALL)) for (i=0;i<nbodies;i++) Part[i].SetType(pfof[Part[i].GetID()]);
+        //otherwise set type to group value for dark matter
+        else {
+            for (i=0;i<nbodies;i++) {
+                if (Part[i].GetType()==DARKTYPE) Part[i].SetType(pfof[Part[i].GetID()]);
+                else Part[i].SetType(-1);
+            }
+        }
+        GetVelocityDensity(opt, nbodies, Part,tree);
+        for (i=0;i<nbodies;i++) Part[i].SetType(storetype[i]);
+        delete[] storetype;
         }
     }
-    GetVelocityDensity(opt, nbodies, Part,tree);
-    for (i=0;i<nbodies;i++) Part[i].SetType(storetype[i]);
-    delete[] storetype;
-    }
-#endif
     delete tree;
 #endif
 
@@ -197,24 +197,26 @@ Int_t* SearchFullSet(Options &opt, const Int_t nbodies, Particle *&Part, Int_t &
     cout<<"Done"<<endl;
 
     //if calculating velocity density only of particles resident in field structures large enough for substructure search
-#if defined(STRUCDEN) && defined(USEMPI)
-    if (totalgroups>0)
-    {
-        storetype=new Int_t[Nlocal];
-        for (i=0;i<Nlocal;i++) storetype[i]=Part[i].GetType();
-        if (!(opt.iBaryonSearch>=1 && opt.partsearchtype==PSTALL)) for (i=0;i<Nlocal;i++) Part[i].SetType((pfof[i]>0));
-        //otherwise set type to group value for dark matter
-        else {
-            for (i=0;i<Nlocal;i++) {
-                if (Part[i].GetType()==DARKTYPE) Part[i].SetType(pfof[i]);
-                else Part[i].SetType(-1);
+#if defined(USEMPI)
+    if (opt.iLocalVelDenCalc==LVDFSTRUC) {
+        if (totalgroups>0)
+        {
+            storetype=new Int_t[Nlocal];
+            for (i=0;i<Nlocal;i++) storetype[i]=Part[i].GetType();
+            if (!(opt.iBaryonSearch>=1 && opt.partsearchtype==PSTALL)) for (i=0;i<Nlocal;i++) Part[i].SetType((pfof[i]>0));
+            //otherwise set type to group value for dark matter
+            else {
+                for (i=0;i<Nlocal;i++) {
+                    if (Part[i].GetType()==DARKTYPE) Part[i].SetType(pfof[i]);
+                    else Part[i].SetType(-1);
+                }
             }
+            tree=new KDTree(Part,Nlocal,opt.Bsize,tree->TPHYS,tree->KEPAN,100,0,0,0,period);
+            GetVelocityDensity(opt, Nlocal, Part,tree);
+            delete tree;
+            for (i=0;i<Nlocal;i++) Part[i].SetType(storetype[i]);
+            delete[] storetype;
         }
-        tree=new KDTree(Part,Nlocal,opt.Bsize,tree->TPHYS,tree->KEPAN,100,0,0,0,period);
-        GetVelocityDensity(opt, Nlocal, Part,tree);
-        delete tree;
-        for (i=0;i<Nlocal;i++) Part[i].SetType(storetype[i]);
-        delete[] storetype;
     }
 #endif
 
@@ -1843,9 +1845,7 @@ void SearchSubSub(Options &opt, const Int_t nsubset, Particle *&Partsubset, Int_
             if (opt.HaloSigmaV>opt.HaloVelDispScale) opt.HaloVelDispScale=opt.HaloSigmaV;
             //now if object is large enough for phase-space decomposition and search, compare local field to bg field
             if (subnumingroup[i]>=MINSUBSIZE) {
-#ifdef HALOONLYDEN
-                GetVelocityDensity(opt,subnumingroup[i],subPart);
-#endif
+                if (opt.iLocalVelDenCalc==LVDFHALO) GetVelocityDensity(opt,subnumingroup[i],subPart);
                 GetDenVRatio(opt,subnumingroup[i],subPart,ngrid,grid,gvel,gveldisp);
                 int blah=GetOutliersValues(opt,subnumingroup[i],subPart,sublevel);
                 opt.idenvflag++;//largest field halo used to deteremine statistics of ratio

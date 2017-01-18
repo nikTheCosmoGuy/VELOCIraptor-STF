@@ -253,21 +253,18 @@ int main(int argc,char **argv)
     if (opt.smname!=NULL) sprintf(fname4,"%s",opt.smname);
 #endif
 
-    //read local velocity data or calculate it 
-    //(and if STRUCDEN flag or HALOONLYDEN is set then only calculate the velocity density function for objects within a structure
-    //as found by SearchFullSet)
-#if defined (STRUCDEN) || defined (HALOONLYDEN)
-#else
+    //read local velocity data or calculate it for all particles if all particle calculation set
+    if (opt.iLocalVelDenCalc==LVDFALL) {
 
-    time1=MyGetTime();
-    if(FileExists(fname4)) ReadLocalVelocityDensity(opt, nbodies,Part);
-    else{
-        GetVelocityDensity(opt, nbodies, Part);
-        WriteLocalVelocityDensity(opt, nbodies,Part);
+        time1=MyGetTime();
+        if(FileExists(fname4)) ReadLocalVelocityDensity(opt, nbodies,Part);
+        else{
+            GetVelocityDensity(opt, nbodies, Part);
+            WriteLocalVelocityDensity(opt, nbodies,Part);
+        }
+        time1=MyGetTime()-time1;
+        cout<<"TIME::"<<ThisTask<<" took "<<time1<<" to analyze "<<Nlocal<<" with "<<nthreads<<endl;
     }
-    time1=MyGetTime()-time1;
-    cout<<"TIME::"<<ThisTask<<" took "<<time1<<" to analyze "<<Nlocal<<" with "<<nthreads<<endl;
-#endif
 
     //here adjust Efrac to Omega_cdm/Omega_m from what it was before if baryonic search is separate
     if (opt.iBaryonSearch>0 && opt.partsearchtype!=PSTALL) opt.uinfo.Eratio*=opt.Omega_cdm/opt.Omega_m;

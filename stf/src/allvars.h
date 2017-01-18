@@ -95,6 +95,17 @@ using namespace NBody;
 #define  PSTGAS 4
 #define  PSTBH 5
 #define  PSTNOBH 6
+#define  PSTMAX 6
+//@}
+//@}
+
+/// \defgroup LOCALVELDENCALCTYPES 
+//@{
+/// \name Specify how local velocity density function value should be calculaed. Either for all, for those in structures or recalculaed each time in a given structure
+//@{
+#define  LVDFALL 0
+#define  LVDFSTRUC 1
+#define  LVDFHALO 2
 //@}
 //@}
 
@@ -382,6 +393,8 @@ struct Options
     int iBaryonSearch;
     ///flag indicating if move to CM frame for substructure search
     int icmrefadjust;
+    ///flag indicating whether local velocity densities are calculated for all particles once, calculated only for those in field objects, or recalculated each time for (sub)haloes
+    int iLocalVelDenCalc;
 
     ///threshold on particle ELL value, normalized logarithmic distance from predicted maxwellian velocity density.
     Double_t ellthreshold;
@@ -464,6 +477,7 @@ struct Options
     //@{
     int gnsphblocks,gnstarblocks,gnbhblocks;
     //@}
+
     
 
     ///\name extra runtime flags
@@ -513,6 +527,7 @@ struct Options
         idenvflag=0;
         iBaryonSearch=0;
         icmrefadjust=1;
+        iLocalVelDenCalc=LVDFSTRUC;
 
         Neff=-1;
 

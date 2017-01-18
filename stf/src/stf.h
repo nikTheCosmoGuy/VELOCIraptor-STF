@@ -255,9 +255,6 @@ by <b>make</b>.
 \section secmake1 Basic operation mode of code
 - \b SCALING \n Set this if you want to scale the physical and velocity 
   linking lengths by bulk values of the halo to be searched. Only valid if a single halo is passed
-- \b STRUCDEN \n Set this if you want to calculate the velocity density function used to find (sub)structures \e ONLY for particles resident in structure
-- \b HALOONLYDEN \n Set this if you want to calculate the velocity density function used to find (sub)structures \e ONLY for particles resident in structure \em USING 
-\em ONLY \em PARTICLES in the parent structure. \b STRUCDEN is overridden by \b HALOONLYDEN (technically these are incompatible with each other as HALOONLYDEN is faster but is biased and the number of particles for which the local distribution function density is calculated for is even more incomplete).
 - \b NOMASS \n Set in \ref NBody::Particle contained in file \ref Particle.h reduces memory allocation
 - \b MASSVAL \n Set in \ref NBody::Particle contained in file \ref Particle.h is the value returned by \ref NBody::Particle.GetMass
 - \b LOWPRECISIONPOS \n Set in \ref NBody::Particle contained in file \ref Particle.h reduces memory allocation and sets phase-space position of particles to floats

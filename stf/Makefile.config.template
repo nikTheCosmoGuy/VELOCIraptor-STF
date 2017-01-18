@@ -58,10 +58,6 @@ USEHYDRO="on"
 #===========================================
 #Adjust the operation of the code
 #===========================================
-#only calculate local density distribution for particles residing in field objects (but using all particles to estimate quantity)
-STRUCTUREDEN="on"
-#or just use particles inside field objects, reducing cpu cycles but will bias estimates for particle in outer region of field structures, overrides STRUCTUREDEN
-HALODEN="on"
 #flag useful for zoom simulations with a high resolution region
 ZOOMSIM="on"
 #===========================================
