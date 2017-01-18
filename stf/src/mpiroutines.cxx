@@ -702,7 +702,7 @@ private(i)
             else {
             for (i=0;i<nbodies;i++) {
                 if (istrucdenflag && !(nn[i]!=-1 && Part[i].GetType()>0)) continue;
-                else if (istrucdenflag==0 !(nn[i]!=-1 && Part[i].GetType()==DARKTYPE)) continue;
+                else if (istrucdenflag==0 && !(nn[i]!=-1 && Part[i].GetType()==DARKTYPE)) continue;
                 for (int k=0;k<3;k++) {
                     PartDataIn[nexport].SetPosition(k,Part[i].GetPosition(k));
                     PartDataIn[nexport].SetVelocity(k,Part[i].GetVelocity(k));
