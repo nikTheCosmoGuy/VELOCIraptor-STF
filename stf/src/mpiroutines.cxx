@@ -467,7 +467,7 @@ void MPIBuildParticleExportList(const Int_t nbodies, Particle *&Part, Int_t *&pf
 
 /*! like \ref MPIGetExportNum but number based on NN search, useful for reducing memory costs at the expense of cpu cycles
 */
-void MPIGetNNExportNum(const Int_t nbodies, Particle *Part, Double_t *rdist){
+void MPIGetNNExportNum(const Int_t nbodies, Particle *Part, Double_t *rdist, int istrucdenflag){
     Int_t i, j,nthreads,nexport=0,nimport=0;
     Int_t nsend_local[NProcs],noffset[NProcs],nbuffer[NProcs];
     Double_t xsearch[3][2];
@@ -483,10 +483,7 @@ void MPIGetNNExportNum(const Int_t nbodies, Particle *Part, Double_t *rdist){
     for (j=0;j<NProcs;j++) nsend_local[j]=0;
     for (i=0;i<nbodies;i++) 
     {
-#ifdef STRUCDEN
-    if (Part[i].GetType()>0) 
-    {
-#endif
+        if (istrucdenflag && Part[i].GetType()==0) continue;
         for (int k=0;k<3;k++) {xsearch[k][0]=Part[i].GetPosition(k)-rdist[i];xsearch[k][1]=Part[i].GetPosition(k)+rdist[i];}
         for (j=0;j<NProcs;j++) {
             if (j!=ThisTask) {
@@ -498,9 +495,6 @@ void MPIGetNNExportNum(const Int_t nbodies, Particle *Part, Double_t *rdist){
                 }
             }
         }
-#ifdef STRUCDEN
-    }
-#endif
     }
     //and then gather the number of particles to be sent from mpi thread m to mpi thread n in the mpi_nsend[NProcs*NProcs] array via [n+m*NProcs]
     MPI_Allgather(nsend_local, NProcs, MPI_Int_t, mpi_nsend, NProcs, MPI_Int_t, MPI_COMM_WORLD);
@@ -511,7 +505,7 @@ void MPIGetNNExportNum(const Int_t nbodies, Particle *Part, Double_t *rdist){
 
 /*! like \ref MPIBuildParticleExportList but each particle has a different distance stored in rdist used to find nearest neighbours
 */
-void MPIBuildParticleNNExportList(const Int_t nbodies, Particle *Part, Double_t *rdist){
+void MPIBuildParticleNNExportList(const Int_t nbodies, Particle *Part, Double_t *rdist, int istrucdenflag){
     Int_t i, j,nthreads,nexport=0,nimport=0;
     Int_t nsend_local[NProcs],noffset[NProcs],nbuffer[NProcs];
     Double_t xsearch[3][2];
@@ -526,11 +520,8 @@ void MPIBuildParticleNNExportList(const Int_t nbodies, Particle *Part, Double_t 
     ///which must be exported. Then its a much quicker follow up loop (no if statement) that stores the data
     for (j=0;j<NProcs;j++) nsend_local[j]=0;
     for (i=0;i<nbodies;i++) 
-#ifdef STRUCDEN
-    if (Part[i].GetType()>0) 
     {
-#endif
-    {
+        if (istrucdenflag && Part[i].GetType()==0) continue;
         for (int k=0;k<3;k++) {xsearch[k][0]=Part[i].GetPosition(k)-rdist[i];xsearch[k][1]=Part[i].GetPosition(k)+rdist[i];}
         for (j=0;j<NProcs;j++) {
             if (j!=ThisTask) {
@@ -551,9 +542,6 @@ void MPIBuildParticleNNExportList(const Int_t nbodies, Particle *Part, Double_t 
                 }
             }
         }
-#ifdef STRUCDEN
-    }
-#endif
     }
     //sort the export data such that all particles to be passed to thread j are together in ascending thread number 
     if (nexport>0) qsort(NNDataIn, nexport, sizeof(struct nndata_in), nn_export_cmp);
@@ -657,7 +645,7 @@ private(i)
 /*! Mirror to \ref MPIBuildParticleNNExportList, use exported particles, run ball search to find all local particles that need to be
     imported back to exported particle's thread so that a proper NN search can be made.
 */
-Int_t MPIBuildParticleNNImportList(const Int_t nbodies, KDTree *tree, Particle *Part, int iallflag){
+Int_t MPIBuildParticleNNImportList(const Int_t nbodies, KDTree *tree, Particle *Part, int iallflag, int istrucdenflag){
     Int_t i, j,nthreads,nexport=0,ncount;
     Int_t nsend_local[NProcs],noffset[NProcs],nbuffer[NProcs];
     Double_t xsearch[3][2];
@@ -713,19 +701,14 @@ private(i)
             //otherwise, check the particle type either == dark matter or if struct den is on then type set to group number if dark and negative group number if not
             else {
             for (i=0;i<nbodies;i++) {
-#ifdef STRUCDEN
-                if (nn[i]!=-1 && Part[i].GetType()>0) 
-#else
-                if (nn[i]!=-1 && Part[i].GetType()==DARKTYPE)
-#endif
-                {
-                    for (int k=0;k<3;k++) {
-                        PartDataIn[nexport].SetPosition(k,Part[i].GetPosition(k));
-                        PartDataIn[nexport].SetVelocity(k,Part[i].GetVelocity(k));
-                    }
-                    nexport++;
-                    nsend_local[j]++;
+                if (istrucdenflag && !(nn[i]!=-1 && Part[i].GetType()>0)) continue;
+                else if (istrucdenflag==0 !(nn[i]!=-1 && Part[i].GetType()==DARKTYPE)) continue;
+                for (int k=0;k<3;k++) {
+                    PartDataIn[nexport].SetPosition(k,Part[i].GetPosition(k));
+                    PartDataIn[nexport].SetVelocity(k,Part[i].GetVelocity(k));
                 }
+                nexport++;
+                nsend_local[j]++;
             }
             }
         }

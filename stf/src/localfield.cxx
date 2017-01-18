@@ -126,17 +126,17 @@ private(i,j,k,tid,id,v2,nnids,nnr2,nnidsneighbours,nnr2neighbours,weight,pqx,pqv
     if (opt.iverbose) cout<<ThisTask<<" finished local calculation in "<<MyGetTime()-t1<<endl;
 
     //determines export AND import numbers
-    MPIGetNNExportNum(nbodies, Part, maxrdist);
+    MPIGetNNExportNum(nbodies, Part, maxrdist,(opt.iLocalVelDenCalc==LVDFSTRUC));
     NNDataIn = new nndata_in[NExport];
     NNDataGet = new nndata_in[NImport];
     //build the exported particle list using NNData structures
-    MPIBuildParticleNNExportList(nbodies, Part, maxrdist);
+    MPIBuildParticleNNExportList(nbodies, Part, maxrdist,(opt.iLocalVelDenCalc==LVDFSTRUC));
     MPIGetNNImportNum(nbodies, tree, Part);
     PartDataIn = new Particle[NExport];
     PartDataGet = new Particle[NImport];
     MPI_Barrier(MPI_COMM_WORLD);
     //run search on exported particles and determine which local particles need to be exported back (or imported)
-    nimport=MPIBuildParticleNNImportList(nbodies, tree, Part,(!(opt.iBaryonSearch==1 && opt.partsearchtype==PSTALL)));
+    nimport=MPIBuildParticleNNImportList(nbodies, tree, Part,(!(opt.iBaryonSearch==1 && opt.partsearchtype==PSTALL)),(opt.iLocalVelDenCalc==LVDFSTRUC));
     int nimportsearch=opt.Nsearch;
     if (nimportsearch>nimport) nimportsearch=nimport;
     if (opt.iverbose) cout<<ThisTask<<" Searching particles in other domains"<<endl;

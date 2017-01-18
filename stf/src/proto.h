@@ -384,13 +384,13 @@ Int_t MPIBaryonExchange(const Int_t nbaryons, Particle *&Pbaryons, Int_t *&pfofb
 ///Effectively is an allgather for the grid data so that particles can find nearest cells and use appropriate nearest neighbouring cells for calculating estimated background velocity density function
 void MPIBuildGridData(const Int_t ngrid, GridCell *grid, Coordinate *gvel, Matrix *gveldisp);
 ///Determine number of particles that need to be exported to another mpi thread from local mpi thread based on array of distances for each particle for NN search
-void MPIGetNNExportNum(const Int_t nbodies, Particle *Part, Double_t *rdist);
+void MPIGetNNExportNum(const Int_t nbodies, Particle *Part, Double_t *rdist, int istrucdenflag);
 ///Determine and send particles that need to be exported to another mpi thread from local mpi thread based on array of distances for each particle for NN search
-void MPIBuildParticleNNExportList(const Int_t nbodies, Particle *Part, Double_t *rdist);
+void MPIBuildParticleNNExportList(const Int_t nbodies, Particle *Part, Double_t *rdist, int istrucdenflag);
 ///Determine number of local particles that need to be exported back based on ball search.
 void MPIGetNNImportNum(const Int_t nbodies, KDTree *tree, Particle *Part);
 ///Determine local particles that need to be exported back based on ball search.
-Int_t MPIBuildParticleNNImportList(const Int_t nbodies, KDTree *tree, Particle *Part, int iallflag=true);
+Int_t MPIBuildParticleNNImportList(const Int_t nbodies, KDTree *tree, Particle *Part, int iallflag=true, int istrucdenflag=true);
 ///comparison function to order particles for export
 int nn_export_cmp(const void *a, const void *b);
 
