@@ -41,9 +41,18 @@ int main(int argc,char **argv)
 
     //store the configuration settings in the options object
     Options opt;
+    GetArgs(argc, argv, opt);
+    //define the type
+    typedef int useidtype;
+    /*
+    if (opt.idtypeflag==IDINT) typedef int idtype;
+    else if (opt.idtypeflag==IDUINT) typedef unsigned int idtype;
+    else if (opt.idtypeflag==IDLONG) typedef long long idtype;
+    else if (opt.idtypeflag==IDULONG) typedef unsigned long long idtype;
+    */
 
     //store the halo tree
-    HaloTreeData *pht;
+    HaloTreeData<useidtype> *pht;
     //store the progenitors of a given set of objects
     ProgenitorData **pprogen;
     //if multiple snapshots are used in constructing the progenitor list, must store the possible set of descendents
@@ -67,7 +76,6 @@ int main(int argc,char **argv)
     //store the time taken by segments of the code
     double time1,time2;
 
-    GetArgs(argc, argv, opt);
 #ifdef USEMPI
     MPILoadBalanceSnapshots(opt);
 #else
@@ -76,28 +84,28 @@ int main(int argc,char **argv)
 #endif
     //read particle information and allocate memory
     if (ThisTask==0) cout<<"Read Data ... "<<endl;
-    pht=ReadData(opt);
+    pht=ReadData<useidtype>(opt);
     if (ThisTask==0) {
         cout<<"Done Loading"<<endl;
         cout<<"Found "<<opt.TotalNumberofHalos<<" halos "<<endl;
     }
     if (opt.imapping==DMEMEFFICIENTMAP) {
         if (ThisTask==0) cout<<"Generating unique memory efficent mapping for particle IDS to index"<<endl;
-        map<long long, long long> idmap=ConstructMemoryEfficientPIDStoIndexMap(opt, pht);
-        MapPIDStoIndex(opt,pht, idmap);
+        map<useidtype, useidtype> idmap=ConstructMemoryEfficientPIDStoIndexMap<useidtype>(opt, pht);
+        MapPIDStoIndex<useidtype>(opt,pht, idmap);
         idmap.clear();
         if (ThisTask==0) {
-            cout<<"Memory needed to store addressing for ids "<<sizeof(long unsigned)*opt.MaxIDValue/1024./1024.0/1024.0<<", maximum ID of "<<opt.MaxIDValue<<endl;
+            cout<<"Memory needed to store addressing for ids "<<sizeof(useidtype)*opt.MaxIDValue/1024./1024.0/1024.0<<", maximum ID of "<<opt.MaxIDValue<<endl;
         }
     }
     else {
         if (ThisTask==0) {
-            cout<<"Memory needed to store addressing for ids "<<sizeof(long unsigned)*opt.MaxIDValue/1024./1024.0/1024.0<<", maximum ID of "<<opt.MaxIDValue<<endl;
+            cout<<"Memory needed to store addressing for ids "<<sizeof(useidtype)*opt.MaxIDValue/1024./1024.0/1024.0<<", maximum ID of "<<opt.MaxIDValue<<endl;
         }
         //adjust ids if particle ids need to be mapped to index
-        if (opt.imapping>DNOMAP) MapPIDStoIndex(opt,pht);
+        if (opt.imapping>DNOMAP) MapPIDStoIndex<useidtype>(opt,pht);
         //check that ids are within allowed range for linking
-        IDcheck(opt,pht);
+        IDcheck<useidtype>(opt,pht);
     }
     //then allocate simple array used for accessing halo ids of particles through their IDs
     pfofp=new unsigned int[opt.MaxIDValue];
@@ -158,17 +166,17 @@ int main(int argc,char **argv)
                 //begin cross matching with previous snapshot(s)
                 //for first linking, cross match and allocate memory
                 if (istep==1) {
-                    pprogen[i]=CrossMatch(opt, pht[i].numhalos, pht[i-istep].numhalos, pht[i].Halo, pht[i-istep].Halo, pfofp, ilistupdated);
-                    CleanCrossMatch(istep, pht[i].numhalos, pht[i-istep].numhalos, pht[i].Halo, pht[i-istep].Halo, pprogen[i]);
+                    pprogen[i]=CrossMatch<useidtype>(opt, pht[i].numhalos, pht[i-istep].numhalos, pht[i].Halo, pht[i-istep].Halo, pfofp, ilistupdated);
+                    CleanCrossMatch<useidtype>(istep, pht[i].numhalos, pht[i-istep].numhalos, pht[i].Halo, pht[i-istep].Halo, pprogen[i]);
                     if (opt.numsteps>1) BuildProgenitorBasedDescendantList(i, i-istep, pht[i].numhalos, pprogen[i], pprogendescen);
                 }
                 //otherwise only care about objects with no links
                 else {
-                    pprogentemp=CrossMatch(opt, pht[i].numhalos, pht[i-istep].numhalos, pht[i].Halo, pht[i-istep].Halo, pfofp, ilistupdated, istep, pprogen[i]);
+                    pprogentemp=CrossMatch<useidtype>(opt, pht[i].numhalos, pht[i-istep].numhalos, pht[i].Halo, pht[i-istep].Halo, pfofp, ilistupdated, istep, pprogen[i]);
                     //if new candidate progenitors have been found then need to update the reference list
                     if (ilistupdated>0) {
                         //if merit limit was applied when deciding to search earlier snapshots
-                        CleanCrossMatch(istep, pht[i].numhalos, pht[i-istep].numhalos, pht[i].Halo, pht[i-istep].Halo, pprogentemp);
+                        CleanCrossMatch<useidtype>(istep, pht[i].numhalos, pht[i-istep].numhalos, pht[i].Halo, pht[i-istep].Halo, pprogentemp);
                         UpdateRefProgenitors(opt,pht[i].numhalos, pprogen[i], pprogentemp, pprogendescen,i);
                         BuildProgenitorBasedDescendantList(i, i-istep, pht[i].numhalos, pprogen[i], pprogendescen, istep);
                     }
@@ -200,7 +208,7 @@ int main(int argc,char **argv)
         //this occurs if current snapshot is at least Endsnap-opt.numsteps*2 or lower as then Endsnap-opt.numsteps have had progenitor list processed
         if (opt.numsteps>1 && pht[i].numhalos>0 && (i<EndSnap-2*opt.numsteps && i>StartSnap+2*opt.numsteps)) {
             if (opt.iverbose) cout<<"Cleaning Progenitor list using descendant information for "<<i<<endl;
-            CleanProgenitorsUsingDescendants(i, pht, pprogendescen, pprogen);
+            CleanProgenitorsUsingDescendants<useidtype>(i, pht, pprogendescen, pprogen);
             delete[] pprogendescen[i];
             pprogendescen[i]=NULL;
         }
@@ -224,7 +232,7 @@ int main(int argc,char **argv)
         if (i>=StartSnap && i<EndSnap-1) {
             if (opt.iverbose) cout<<"Cleaning Progenitor list using descendant information for "<<i<<endl;
             if (pprogendescen[i]!=NULL) {
-                CleanProgenitorsUsingDescendants(i, pht, pprogendescen, pprogen);
+                CleanProgenitorsUsingDescendants<useidtype>(i, pht, pprogendescen, pprogen);
                 delete[] pprogendescen[i];
                 pprogendescen[i]=NULL;
             }
@@ -270,13 +278,13 @@ int main(int argc,char **argv)
                 //begin cross matching with  snapshot(s)
                 //for first linking, cross match and allocate memory
                 if (istep==1) {
-                    pdescen[i]=CrossMatchDescendant(opt,  pht[i].numhalos, pht[i+istep].numhalos, pht[i].Halo, pht[i+istep].Halo, pfofd, ilistupdated);
-                    CleanCrossMatchDescendant(istep, pht[i].numhalos, pht[i+istep].numhalos, pht[i].Halo, pht[i+istep].Halo, pdescen[i]);
+                    pdescen[i]=CrossMatchDescendant<useidtype>(opt,  pht[i].numhalos, pht[i+istep].numhalos, pht[i].Halo, pht[i+istep].Halo, pfofd, ilistupdated);
+                    CleanCrossMatchDescendant<useidtype>(istep, pht[i].numhalos, pht[i+istep].numhalos, pht[i].Halo, pht[i+istep].Halo, pdescen[i]);
                 }
                 //otherwise only care about objects with no links
                 else {
-                    pdescentemp=CrossMatchDescendant(opt, pht[i].numhalos, pht[i+istep].numhalos, pht[i].Halo, pht[i+istep].Halo, pfofd, ilistupdated, istep, pdescen[i]);
-                    CleanCrossMatchDescendant(istep, pht[i].numhalos, pht[i+istep].numhalos, pht[i].Halo, pht[i+istep].Halo, pdescen[i]);
+                    pdescentemp=CrossMatchDescendant<useidtype>(opt, pht[i].numhalos, pht[i+istep].numhalos, pht[i].Halo, pht[i+istep].Halo, pfofd, ilistupdated, istep, pdescen[i]);
+                    CleanCrossMatchDescendant<useidtype>(istep, pht[i].numhalos, pht[i+istep].numhalos, pht[i].Halo, pht[i+istep].Halo, pdescen[i]);
                     UpdateRefDescendants(opt,pht[i].numhalos, pdescen[i], pdescentemp);
                     delete[] pdescentemp;
                 }
@@ -312,7 +320,7 @@ int main(int argc,char **argv)
 
     //now start writing the results
     if (opt.icatalog!=DCROSSCAT) {
-        WriteHaloMergerTree(opt,pprogen,pht);
+        WriteHaloMergerTree<useidtype>(opt,pprogen,pht);
         if (opt.icatalog==DGRAPH) {
             char fname[1000];
             sprintf(fname,"%s.graph",opt.outname);
@@ -320,7 +328,7 @@ int main(int argc,char **argv)
             WriteHaloGraph(opt,pprogen,pdescen,pht);
         }
     }
-    else WriteCrossComp(opt,pprogen,pht);
+    else WriteCrossComp<useidtype>(opt,pprogen,pht);
 
     //free up memory
     for (i=0;i<opt.numsnapshots;i++) if (pprogen[i]!=NULL) delete[] pprogen[i];

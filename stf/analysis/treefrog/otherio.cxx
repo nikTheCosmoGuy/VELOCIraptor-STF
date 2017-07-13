@@ -5,9 +5,9 @@
 #include "TreeFrog.h"
 
 ///Read halo data from an idividual snapshot;
-HaloData *ReadHaloData(string &infile, Int_t &numhalos)
+template<typename idtype> HaloData<idtype> *ReadHaloData(string &infile, Int_t &numhalos)
 {
-    HaloData *Halo;
+    HaloData<idtype> *Halo;
     long unsigned i, j,nparts,haloid;
     long unsigned TotalNumberofHalos;
 
@@ -18,7 +18,7 @@ HaloData *ReadHaloData(string &infile, Int_t &numhalos)
       exit(1);
     }
     fscanf(f, "%ld", &TotalNumberofHalos);
-    Halo = new HaloData[TotalNumberofHalos];
+    Halo = new HaloData<idtype>[TotalNumberofHalos];
     for(i=0; i<TotalNumberofHalos; i++){
       fscanf(f, "%ld %ld",&(nparts),&(haloid));
       Halo[i].Alloc(nparts);
@@ -41,9 +41,9 @@ HaloData *ReadHaloData(string &infile, Int_t &numhalos)
 ///as new AHF just outputs particle id and particle type AND particle type
 ///is important as only DM particles have continuous ids, adjust read so that 
 ///though total is allocated only use particles of type 1 for zoom simulations
-HaloData *ReadNIFTYData(string &infile, Int_t &numhalos, int idcorrectflag, int hidoffset)
+template<typename idtype> HaloData<idtype> *ReadNIFTYData(string &infile, Int_t &numhalos, int idcorrectflag, int hidoffset)
 {
-    HaloData *Halo;
+    HaloData<idtype> *Halo;
     long unsigned i, j,nparts,haloid;
     long unsigned TotalNumberofHalos;
     long long idvaloffset=0;
@@ -63,7 +63,7 @@ HaloData *ReadNIFTYData(string &infile, Int_t &numhalos, int idcorrectflag, int 
     }
     if (idvaloffset!=0) cout<<infile<<" offseting ids by "<<idvaloffset<<endl;
     fscanf(f, "%ld", &TotalNumberofHalos);
-    Halo = new HaloData[TotalNumberofHalos];
+    Halo = new HaloData<idtype>[TotalNumberofHalos];
     for(i=0; i<TotalNumberofHalos; i++){
       fscanf(f, "%ld %ld",&(nparts),&(haloid));
       Halo[i].Alloc(nparts);
@@ -89,9 +89,9 @@ HaloData *ReadNIFTYData(string &infile, Int_t &numhalos, int idcorrectflag, int 
 ///Read void data from an idividual snapshot;
 ///This format is CellID, CellType, VoidID, ParticleID
 ///note that a void consists of void AND sheet particles
-HaloData *ReadVoidData(string &infile, Int_t &numhalos, int idcorrectflag, int hidoffset)
+template<typename idtype> HaloData<idtype> *ReadVoidData(string &infile, Int_t &numhalos, int idcorrectflag, int hidoffset)
 {
-    HaloData *Halo;
+    HaloData<idtype> *Halo;
     long unsigned i, j,nparts,haloid;
     long unsigned TotalNumberofHalos;
     long long idvaloffset=0;
@@ -123,7 +123,7 @@ HaloData *ReadVoidData(string &infile, Int_t &numhalos, int idcorrectflag, int h
     }
     Fin.clear();
     Fin.seekg(0, ios::beg);
-    Halo = new HaloData[TotalNumberofHalos];
+    Halo = new HaloData<idtype>[TotalNumberofHalos];
     int *numingroup=new int[TotalNumberofHalos];
     for(i=0; i<TotalNumberofHalos; i++) numingroup[i]=0;
     if (Fin.good())

@@ -146,6 +146,14 @@ using namespace NBody;
 #define OUTHDF 5
 //@}
 
+///\name id types
+//@{
+#define IDINT 0
+#define IDUINT 1
+#define IDLONG 2
+#define IDULONG 3
+//@}
+
 /// \name defining types of multisnapshot linking done
 //@{
 ///missing link
@@ -243,6 +251,9 @@ struct Options
     ///verbose output flag
     int iverbose;
 
+    ///specify the integer type used to store ids, int, unsigned int, unsigned long, long
+    int idtypeflag;
+
 #ifdef USEMPI
     ///number of items (halos or particles in halos) across various snapshots desired. Used for load balancing
     Int_t numpermpi;
@@ -293,22 +304,23 @@ struct Options
         ndesiredmpithreads=0;
         iwriteparallel=0;
 #endif
+        idtypeflag=IDINT;
     }
 };
 
 /*!
     Halo data structure
 */
-struct HaloData{
+template <typename idtype> struct HaloData{
     long unsigned haloID;
     long unsigned NumberofParticles;
-    long unsigned *ParticleID;
+    idtype *ParticleID;
     //Coordinate         *X;
     //Coordinate         *V;
     HaloData(long unsigned np=0){
         NumberofParticles=np;
         if (NumberofParticles>0) {
-            ParticleID=new long unsigned[NumberofParticles];
+            ParticleID=new idtype[NumberofParticles];
             //X=new Coordinate[NumberofParticles];
             //V=new Coordinate[NumberofParticles];
         }
@@ -321,7 +333,7 @@ struct HaloData{
         }
         NumberofParticles=nhalos;
         if (NumberofParticles>0) {
-            ParticleID=new long unsigned[NumberofParticles];
+            ParticleID=new idtype[NumberofParticles];
             //X=new Coordinate[NumberofParticles];
             //V=new Coordinate[NumberofParticles];
         }
@@ -335,9 +347,9 @@ struct HaloData{
     }
 };
 
-struct HaloTreeData{
+template<typename idtype> struct HaloTreeData{
     Int_t numhalos;
-    HaloData *Halo;
+    HaloData<idtype> *Halo;
     HaloTreeData(){
         numhalos=0;
         Halo=NULL;

@@ -11,7 +11,7 @@
 
 /// Determine initial progenitor list based on just merit
 /// does not guarantee that progenitor list is exclusive
-ProgenitorData *CrossMatch(Options &opt, const long unsigned nhalos1, const long unsigned nhalos2, HaloData *&h1, HaloData *&h2, unsigned int*&pfof2, int &ilistupdated, int istepval, ProgenitorData *refprogen)
+template<typename idtype> ProgenitorData *CrossMatch(Options &opt, const long unsigned nhalos1, const long unsigned nhalos2, HaloData<idtype> *&h1, HaloData<idtype> *&h2, unsigned int*&pfof2, int &ilistupdated, int istepval, ProgenitorData *refprogen)
 {
     long int i,j,k,n,index;
     Int_t numshared;
@@ -394,7 +394,7 @@ private(i,j,n,tid,pq,numshared,merit,index,offset,np1,np2,pq2,hid)
 
 ///effectively the same code as \ref CrossMatch but allows for the possibility of matching descendant/child nodes using a different merit function
 ///here the lists are different as input order is reverse of that used in \ref CrossMatch
-DescendantData *CrossMatchDescendant(Options &opt, const long unsigned nhalos1, const long unsigned nhalos2, HaloData *&h1, HaloData *&h2, unsigned int *&pfof2, int &ilistupdated, int istepval, DescendantData *refdescen)
+template<typename idtype> DescendantData *CrossMatchDescendant(Options &opt, const long unsigned nhalos1, const long unsigned nhalos2, HaloData<idtype> *&h1, HaloData<idtype> *&h2, unsigned int *&pfof2, int &ilistupdated, int istepval, DescendantData *refdescen)
 {
     long int i,j,k,n,index;
     Int_t numshared;
@@ -769,7 +769,7 @@ private(i,j,n,tid,pq,numshared,merit,index,offset,np1,np2,pq2,hid)
 }
 
 ///ensure cross match is exclusive
-void CleanCrossMatch(const int istepval, const long unsigned nhalos1, const long unsigned nhalos2, HaloData *&h1, HaloData *&h2, ProgenitorData *&p1)
+template<typename idtype> void CleanCrossMatch(const int istepval, const long unsigned nhalos1, const long unsigned nhalos2, HaloData<idtype> *&h1, HaloData<idtype> *&h2, ProgenitorData *&p1)
 {
     Int_t i,j,k;
     int nthreads=1,tid;
@@ -838,7 +838,7 @@ private(i,j,k)
     delete[] merit;
 }
 ///similar to \ref CleanCrossMatch but does the same for descendants
-void CleanCrossMatchDescendant(const int istepval, const long unsigned nhalos1, const long unsigned nhalos2, HaloData *&h1, HaloData *&h2, DescendantData *&p1)
+template<typename idtype> void CleanCrossMatchDescendant(const int istepval, const long unsigned nhalos1, const long unsigned nhalos2, HaloData<idtype> *&h1, HaloData<idtype> *&h2, DescendantData *&p1)
 {
     Int_t i,j,k;
     int nthreads=1,tid;
@@ -995,7 +995,7 @@ void RemoveLinksProgenitorBasedDescendantList(Int_t itime, Int_t ihaloindex, Pro
 }
 
 ///Cleans the progenitor list to ensure that a given object only has a single descendant using the descendant list built using progenitors. Called if linking across multiple snapshots
-void CleanProgenitorsUsingDescendants(Int_t i, HaloTreeData *&pht, DescendantDataProgenBased **&pprogendescen, ProgenitorData **&pprogen)
+template<typename idtype> void CleanProgenitorsUsingDescendants(Int_t i, HaloTreeData<idtype> *&pht, DescendantDataProgenBased **&pprogendescen, ProgenitorData **&pprogen)
 {
     unsigned long itime;
     unsigned long hid;

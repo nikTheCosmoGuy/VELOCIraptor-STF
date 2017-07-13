@@ -6,7 +6,7 @@
 
 /// \name if halo ids need to be adjusted
 //@{
-void UpdateHaloIDs(Options &opt, HaloTreeData *&pht) {
+template<typename idtype> void UpdateHaloIDs(Options &opt, HaloTreeData<idtype> *&pht) {
     Int_t i,j;
     if (opt.haloidval>0) {
         for (i=opt.numsnapshots-1;i>=0;i--) {
@@ -26,7 +26,7 @@ void UpdateHaloIDs(Options &opt, HaloTreeData *&pht) {
 //@{
 ///builds a map by identifying the ids of particles in structure across snapshots
 ///which is memory efficient as only needs array size of maximum number of particles in structures 
-map<long long, long long> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, HaloTreeData *&pht) {
+template<typename idtype> map<idtype, idtype> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, HaloTreeData<idtype> *&pht) {
     Int_t i,j,k;
     Int_t index,indexoffset,offsetsnap;
     double time1,time2;
@@ -39,9 +39,9 @@ map<long long, long long> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, H
 
     if (ThisTask==0) cout<<"Mapping PIDS to index "<<endl;
     //place ids in a set so have unique ordered set of ids
-    unordered_set<long long> idset;
-    vector<long long> idvec;
-    map<long long, long long> idmap;
+    unordered_set<idtype> idset;
+    vector<idtype> idvec;
+    map<idtype, idtype> idmap;
     //index=0;
     time1=MyGetTime();
     time2=MyGetTime();
@@ -60,7 +60,7 @@ map<long long, long long> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, H
     //keep going till all info cascaded to task 0 and a unique set of ids are generated across all snapshots and mpi domains
 
     //used to transmit info
-    long long *idarray;
+    idtype *idarray;
     //int nmpiloops=(int)(floor(exp(log((Double_t)NProcs)-log(2.0))))
     int nrecvtasks,nsendtasks, numloops=0;
     MPI_Status status;
@@ -84,7 +84,7 @@ map<long long, long long> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, H
             //if a send task
             if (sendtask[ThisTask]>=0 && recvtask[ThisTask]==-1) {
                 commsize=idset.size();
-                idarray=new long long[commsize];
+                idarray=new idtype[commsize];
                 j=0; for (auto idval: idset) idarray[j++]=idval;
                 //send size
                 MPI_Send(&commsize,1, MPI_Int_t, sendtask[ThisTask], numloops*NProcs*NProcs+ThisTask, MPI_COMM_WORLD);
@@ -96,7 +96,7 @@ map<long long, long long> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, H
             if (recvtask[ThisTask]>=0 && sendtask[ThisTask]==-1) {
                 //recv size
                 MPI_Recv(&commsize,1, MPI_Int_t, recvtask[ThisTask], numloops*NProcs*NProcs+recvtask[ThisTask], MPI_COMM_WORLD,&status);
-                idarray=new long long[commsize];
+                idarray=new idtype[commsize];
                 //recv info
                 MPI_Recv(idarray,commsize, MPI_LONG, recvtask[ThisTask], numloops*NProcs*NProcs+NProcs+recvtask[ThisTask], MPI_COMM_WORLD,&status);
                 for (i=0;i<commsize;i++) idset.insert(idarray[i]);
@@ -127,16 +127,16 @@ map<long long, long long> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, H
     //now broadcast from root to all processors
     if (ThisTask==0) {
         commsize=idset.size();
-        idvec=vector<long long>(idset.begin(), idset.end());
+        idvec=vector<idtype>(idset.begin(), idset.end());
     }
     MPI_Bcast(&commsize,1, MPI_Int_t, 0, MPI_COMM_WORLD);
-    if (ThisTask!=0) idvec=vector<long long>(commsize);
+    if (ThisTask!=0) idvec=vector<idtype>(commsize);
     MPI_Bcast(idvec.data(),commsize, MPI_LONG, 0, MPI_COMM_WORLD);
 #else
-    idvec=vector<long long>(idset.begin(), idset.end());
+    idvec=vector<idtype>(idset.begin(), idset.end());
 #endif
     opt.MaxIDValue=idvec.size();
-    for (i=0;i<opt.MaxIDValue;i++) idmap.insert(pair<long long, long long>(idvec[i],(long long)i));
+    for (i=0;i<opt.MaxIDValue;i++) idmap.insert(pair<idtype, idtype>(idvec[i],(idtype)i));
     time2=MyGetTime()-time2;
 #ifdef USEMPI
     if (opt.iverbose && ThisTask==0) cout<<ThisTask<<" finished getting GLOBAL unique ids of "<<idvec.size()<<" in "<<time2<<endl;
@@ -144,7 +144,7 @@ map<long long, long long> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, H
     return idmap;
 }
 
-void MapPIDStoIndex(Options &opt, HaloTreeData *&pht, map<long long, long long> &idmap) {
+template<typename idtype>void MapPIDStoIndex(Options &opt, HaloTreeData<idtype> *&pht, map<idtype, idtype> &idmap) {
 #ifndef USEMPI
     int ThisTask=0;
 #endif
@@ -174,7 +174,7 @@ private(i,j,k)
 #endif
 }
 
-void MapPIDStoIndex(Options &opt, HaloTreeData *&pht) {
+template<typename idtype> void MapPIDStoIndex(Options &opt, HaloTreeData<idtype> *&pht) {
 #ifndef USEMPI
     int ThisTask=0;
 #endif
@@ -202,12 +202,12 @@ private(i,j,k)
 #endif
 }
 
-void simplemap(long unsigned int &i) {}
+template<typename idtype>void simplemap(idtype &i) {}
 
 //@}
 
 //check to see if ID data compatible with accessing index array allocated
-void IDcheck(Options &opt, HaloTreeData *&pht){
+template<typename idtype> void IDcheck(Options &opt, HaloTreeData<idtype> *&pht){
     int ierrorflag=0,ierrorsumflag=0;
 #ifndef USEMPI
     int ThisTask=0,NProcs=1,NSnap=opt.numsnapshots,StartSnap=0,EndSnap=opt.numsnapshots;

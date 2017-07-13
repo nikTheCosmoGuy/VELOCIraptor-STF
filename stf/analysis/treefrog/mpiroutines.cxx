@@ -199,7 +199,7 @@ int MPIReadLoadBalance(Options &opt){
 
 ///mpi routine to broadcast the progenitor based descendant list for snapshots that overlap between mpi tasks. Ensures that descendent lists is complete and 
 ///can be used to clean progenitor list
-void MPIUpdateProgenitorsUsingDescendants(Options &opt, HaloTreeData *&pht, DescendantDataProgenBased **&pprogendescen, ProgenitorData **&pprogen)
+template<typename idtype> void MPIUpdateProgenitorsUsingDescendants(Options &opt, HaloTreeData<idtype> *&pht, DescendantDataProgenBased **&pprogendescen, ProgenitorData **&pprogen)
 {
     if (opt.iverbose>0 && ThisTask==0) cout<<"Updating descendant based progenitor list across MPI threads"<<endl;
     ///broadcast overlaping snapshots

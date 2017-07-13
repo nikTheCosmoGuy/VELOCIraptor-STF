@@ -71,12 +71,12 @@ Int_t ReadNumberofParticlesInHalos(Options &opt, Int_t *numpartinhalos)
 
 ///Read data from a number of snapshot files
 ///\todo need to figure out the best way to optimize the openmp reading as it can be unstable as it stands
-HaloTreeData *ReadData(Options &opt)
+template<typename idtype>HaloTreeData<idtype> *ReadData(Options &opt)
 {
-    HaloTreeData *HaloTree;
+    HaloTreeData<idtype> *HaloTree;
     fstream Fin;//file is list of halo data files
     long unsigned j,nparts,haloid;
-    HaloTree=new HaloTreeData[opt.numsnapshots];
+    HaloTree=new HaloTreeData<idtype>[opt.numsnapshots];
     string *buf=new string[opt.numsnapshots];
     Int_t tothalos=0;
     Double_t t0;
@@ -135,10 +135,10 @@ private(i)
         //if mpi only read relavant data
         if (i>=StartSnap && i<EndSnap) {
 #endif
-            if (opt.ioformat==DSUSSING) HaloTree[i].Halo=ReadHaloData(buf[i],HaloTree[i].numhalos);
-            else if (opt.ioformat==DCATALOG) HaloTree[i].Halo=ReadHaloGroupCatalogData(buf[i],HaloTree[i].numhalos, opt.nmpifiles, opt.ibinary,opt.ifield, opt.itypematch,opt.iverbose);
-            else if (opt.ioformat==DNIFTY) HaloTree[i].Halo=ReadNIFTYData(buf[i],HaloTree[i].numhalos, opt.idcorrectflag);
-            else if (opt.ioformat==DVOID) HaloTree[i].Halo=ReadVoidData(buf[i],HaloTree[i].numhalos, opt.idcorrectflag);
+            if (opt.ioformat==DSUSSING) HaloTree[i].Halo=ReadHaloData<idtype>(buf[i],HaloTree[i].numhalos);
+            else if (opt.ioformat==DCATALOG) HaloTree[i].Halo=ReadHaloGroupCatalogData<idtype>(buf[i],HaloTree[i].numhalos, opt.nmpifiles, opt.ibinary,opt.ifield, opt.itypematch,opt.iverbose);
+            else if (opt.ioformat==DNIFTY) HaloTree[i].Halo=ReadNIFTYData<idtype>(buf[i],HaloTree[i].numhalos, opt.idcorrectflag);
+            else if (opt.ioformat==DVOID) HaloTree[i].Halo=ReadVoidData<idtype>(buf[i],HaloTree[i].numhalos, opt.idcorrectflag);
 #ifdef USEMPI
             //if mpi then there is data overlap so only add to total if no overlap
             if (ThisTask<NProcs-1 && NProcs>1) {
@@ -174,7 +174,7 @@ private(i)
 
 ///\name Write routines
 //@{
-void WriteHaloMergerTree(Options &opt, ProgenitorData **p, HaloTreeData *h) {
+template<typename idtype> void WriteHaloMergerTree(Options &opt, ProgenitorData **p, HaloTreeData<idtype> *h) {
     fstream Fout;
     char fname[1000];
     char fnamempi[2000];
@@ -403,7 +403,7 @@ void WriteHaloMergerTree(Options &opt, ProgenitorData **p, HaloTreeData *h) {
     if (ThisTask==0) cout<<"Done writing to "<<fname<<" "<<MyGetTime()-time1<<endl;
 }
 
-void WriteHaloGraph(Options &opt, ProgenitorData **p, DescendantData **d, HaloTreeData *h) {
+template<typename idtype> void WriteHaloGraph(Options &opt, ProgenitorData **p, DescendantData **d, HaloTreeData<idtype> *h) {
     fstream Fout;
     char fname[1000];
     sprintf(fname,"%s",opt.outname);
@@ -444,7 +444,7 @@ void WriteHaloGraph(Options &opt, ProgenitorData **p, DescendantData **d, HaloTr
     Fout.close();
 }
 
-void WriteCrossComp(Options &opt, ProgenitorData **p, HaloTreeData *h) {
+template<typename idtype> void WriteCrossComp(Options &opt, ProgenitorData **p, HaloTreeData<idtype> *h) {
     fstream Fout;
     char fname[1000];
     sprintf(fname,"%s",opt.outname);

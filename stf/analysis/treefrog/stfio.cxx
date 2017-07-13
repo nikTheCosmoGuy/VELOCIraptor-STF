@@ -570,7 +570,6 @@ Int_t MPIReadHaloGroupCatalogDataNum(string &infile, int mpi_ninput, int ibinary
 Int_t MPIReadHaloGroupCatalogDataParticleNum(string &infile, int mpi_ninput, int ibinary, int ifieldhalos, int itypematch)
 {
 
-    HaloData *Halo;
     Int_t itemp;
     unsigned long ltemp;
     Int_t noffset,numfiletypes;
@@ -689,9 +688,9 @@ Int_t MPIReadHaloGroupCatalogDataParticleNum(string &infile, int mpi_ninput, int
 }
 
 ///Allocate memory to store halo information
-HaloData *MPIReadHaloGroupCatalogDataAllocation(string &infile, Int_t &numhalos, int mpi_ninput, int ibinary, int ifieldhalos, int itypematch)
+template<typename idtype> HaloData<idtype> *MPIReadHaloGroupCatalogDataAllocation(string &infile, Int_t &numhalos, int mpi_ninput, int ibinary, int ifieldhalos, int itypematch)
 {
-    HaloData *Halo;
+    HaloData<idtype> *Halo;
     Int_t itemp;
     unsigned long ltemp;
     Int_t noffset,numfiletypes;
@@ -755,7 +754,7 @@ HaloData *MPIReadHaloGroupCatalogDataAllocation(string &infile, Int_t &numhalos,
 
         //allocate memory for halos
         if (k==0) {
-            Halo=new HaloData[TotalNumberofHalos];
+            Halo=new HaloData<idtype>[TotalNumberofHalos];
             numhalos=TotalNumberofHalos;
         }
         if (nglocal>0) {
@@ -808,7 +807,7 @@ HaloData *MPIReadHaloGroupCatalogDataAllocation(string &infile, Int_t &numhalos,
 }
 
 ///Read halo data from an individual snapshot;
-void MPIReadHaloGroupCatalogData(string &infile, Int_t &numhalos, HaloData *&Halo, int mpi_ninput, int ibinary, int ifieldhalos, int itypematch, int iverbose)
+template<typename idtype> void MPIReadHaloGroupCatalogData(string &infile, Int_t &numhalos, HaloData<idtype> *&Halo, int mpi_ninput, int ibinary, int ifieldhalos, int itypematch, int iverbose)
 {
     Int_t itemp;
     unsigned long ltemp;
@@ -1148,9 +1147,9 @@ void MPIReadHaloGroupCatalogData(string &infile, Int_t &numhalos, HaloData *&Hal
 
 
 ///Read halo catalog data from an individual snapshot;
-HaloData *ReadHaloGroupCatalogData(string &infile, Int_t &numhalos, int mpi_ninput, int ibinary, int ifieldhalos, int itypematch, int iverbose)
+template<typename idtype> HaloData<idtype> *ReadHaloGroupCatalogData(string &infile, Int_t &numhalos, int mpi_ninput, int ibinary, int ifieldhalos, int itypematch, int iverbose)
 {
-    HaloData *Halo;
+    HaloData<idtype> *Halo;
     Int_t itemp;
     unsigned long ltemp;
     Int_t noffset,numfiletypes;
@@ -1214,7 +1213,7 @@ HaloData *ReadHaloGroupCatalogData(string &infile, Int_t &numhalos, int mpi_ninp
         //allocate memory for halos
         if (k==0) {
             if (iverbose) cout<<"reading "<<infile<<" split into "<<nmpicount<<" files "<<endl<<"Total number of halos in all files is "<<TotalNumberofHalos<<endl;
-            Halo=new HaloData[TotalNumberofHalos];
+            Halo=new HaloData<idtype>[TotalNumberofHalos];
             numhalos=TotalNumberofHalos;
             //if no haloes close file and return
             if (numhalos==0) {

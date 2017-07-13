@@ -36,15 +36,15 @@ bool FileExists(const char *fname);
 ///Reads the header information
 Int_t ReadHeader(Options &opt);
 ///Reads halo particle id data
-HaloTreeData *ReadData(Options &opt);
+template<typename idtype> HaloTreeData<idtype> *ReadData(Options &opt);
 ///Reads individual halo data file
-HaloData *ReadHaloData(string &fname, Int_t &nhalos);
+template<typename idtype> HaloData<idtype> *ReadHaloData(string &fname, Int_t &nhalos);
 ///Reads NIFTY AHF individual halo data file
-HaloData *ReadNIFTYData(string &fname, Int_t &nhalos, int idcorrectflag=0, int hidoffset=1);
+template<typename idtype> HaloData<idtype> *ReadNIFTYData(string &fname, Int_t &nhalos, int idcorrectflag=0, int hidoffset=1);
 ///Reads a Void catalog file
-HaloData *ReadVoidData(string &fname, Int_t &nhalos, int idcorrectflag=0, int hidoffset=1);
+template<typename idtype> HaloData<idtype> *ReadVoidData(string &fname, Int_t &nhalos, int idcorrectflag=0, int hidoffset=1);
 ///Reads VELOCIraptor like Group Catalog Data. Can adjust so that only particles of some type are check for cross matching
-HaloData *ReadHaloGroupCatalogData(string &infile, Int_t &numhalos, int mpi_ninput=0, int ibinary=1, int ifieldhalos=1, int itypesort=ALLTYPEMATCH, int iverbose=0);
+template<typename idtype> HaloData<idtype> *ReadHaloGroupCatalogData(string &infile, Int_t &numhalos, int mpi_ninput=0, int ibinary=1, int ifieldhalos=1, int itypesort=ALLTYPEMATCH, int iverbose=0);
 //@}
 
 /// \name routines used to read VELOCIraptor output
@@ -87,11 +87,11 @@ inline void STFReadNumData(unsigned long &nids, unsigned long &nsids, unsigned l
 /// see \ref io.cxx for implementation
 //@{
 ///Writes the merger tree
-void WriteHaloMergerTree(Options &opt, ProgenitorData **p, HaloTreeData *h);
+template<typename idtype> void WriteHaloMergerTree(Options &opt, ProgenitorData **p, HaloTreeData<idtype> *h);
 ///writes a full graph
-void WriteHaloGraph(Options &opt, ProgenitorData **p, DescendantData **d, HaloTreeData *h);
+template<typename idtype> void WriteHaloGraph(Options &opt, ProgenitorData **p, DescendantData **d, HaloTreeData<idtype> *h);
 ///writes a cross comparison between two catalogs
-void WriteCrossComp(Options &opt, ProgenitorData **p, HaloTreeData *h);
+template<typename idtype> void WriteCrossComp(Options &opt, ProgenitorData **p, HaloTreeData<idtype> *h);
 //@}
 
 #ifdef USEMPI
@@ -107,9 +107,9 @@ Int_t MPIReadHaloGroupCatalogDataNum(string &infile, int mpi_ninput=0, int ibina
 ///Reads Number of particles in halos from VELOCIraptor Group catalogs
 Int_t MPIReadHaloGroupCatalogDataParticleNum(string &infile, int mpi_ninput=0, int ibinary=1, int ifieldhalos=1, int itypesort=ALLTYPEMATCH);
 ///Reads data to allocate memory, useful for mpi
-HaloData *MPIReadHaloGroupCatalogDataAllocation(string &infile, Int_t &numhalos, int mpi_ninput=0, int ibinary=1, int ifieldhalos=1, int itypesort=ALLTYPEMATCH);
+template<typename idtype>HaloData<idtype> *MPIReadHaloGroupCatalogDataAllocation(string &infile, Int_t &numhalos, int mpi_ninput=0, int ibinary=1, int ifieldhalos=1, int itypesort=ALLTYPEMATCH);
 ///Reads VELOCIraptor like Group Catalog Data with memory already allocated for MPI version. 
-void MPIReadHaloGroupCatalogData(string &infile, Int_t &numhalos, HaloData *&Halo, int mpi_ninput=0, int ibinary=1, int ifieldhalos=1, int itypesort=ALLTYPEMATCH, int iverbose=0);
+template<typename idtype> void MPIReadHaloGroupCatalogData(string &infile, Int_t &numhalos, HaloData<idtype> *&Halo, int mpi_ninput=0, int ibinary=1, int ifieldhalos=1, int itypesort=ALLTYPEMATCH, int iverbose=0);
 ///load balance input data
 void MPILoadBalanceSnapshots(Options &);
 ///as load balancing is long, read/write the load balance
@@ -121,7 +121,7 @@ int MPIReadLoadBalance(Options &);
 ///\name  for mpi related meshing of data
 /// see \ref mpiroutines.cxx for implementation
 //@{
-void MPIUpdateProgenitorsUsingDescendants(Options &opt, HaloTreeData *&pht, DescendantDataProgenBased **&pprogendescen, ProgenitorData **&pprogen);
+template<typename idtype> void MPIUpdateProgenitorsUsingDescendants(Options &opt, HaloTreeData<idtype> *&pht, DescendantDataProgenBased **&pprogendescen, ProgenitorData **&pprogen);
 //@}
 #endif
 
@@ -136,16 +136,16 @@ void MPIUpdateProgenitorsUsingDescendants(Options &opt, HaloTreeData *&pht, Desc
 /// the routine can also be provided a reference list and the time step of the current halo list used to identify progenitors
 /// and will only search current halo list if the reference list doesn't meet the criteria for viable progenitors
 /// which is currently whether there are any in the reference list
-ProgenitorData *CrossMatch(Options &opt, const long unsigned nhalos1, const long unsigned nhalos2, HaloData *&h1, HaloData* &h2, unsigned int*&pfof2, int &ilistupdated, int istepval=1, ProgenitorData *refprogen=NULL);
+template<typename idtype> ProgenitorData *CrossMatch(Options &opt, const long unsigned nhalos1, const long unsigned nhalos2, HaloData<idtype> *&h1, HaloData<idtype>* &h2, unsigned int*&pfof2, int &ilistupdated, int istepval=1, ProgenitorData *refprogen=NULL);
 ///clean cross matches of duplicate entries so that a progenitor can have ONLY ONE descendent. 
-void CleanCrossMatch(const int istepval, const long unsigned nhalos1, const long unsigned nhalos2, HaloData *&h1, HaloData *&h2, ProgenitorData *&pprogen);
+template<typename idtype> void CleanCrossMatch(const int istepval, const long unsigned nhalos1, const long unsigned nhalos2, HaloData<idtype> *&h1, HaloData<idtype> *&h2, ProgenitorData *&pprogen);
 ///fill in empty links of the reference list with another progenitor list produced using same reference snapshot but different linking snapshot. 
 ///Allows for multiple steps in snapshots to be used. 
 void UpdateRefProgenitors(Options &opt, const Int_t numhalos,ProgenitorData *&pref, ProgenitorData *&ptemp, DescendantDataProgenBased **&pprogendescen, Int_t itime);
 ///similar to \ref CrossMatch but for descendants
-DescendantData *CrossMatchDescendant(Options &opt, const long unsigned nhalos1, const long unsigned nhalos2, HaloData *&h1, HaloData* &h2, unsigned int*&pfof2, int &ilistupdated, int istepval=1, DescendantData *refdescen=NULL);
+template<typename idtype> DescendantData *CrossMatchDescendant(Options &opt, const long unsigned nhalos1, const long unsigned nhalos2, HaloData<idtype> *&h1, HaloData<idtype> * &h2, unsigned int*&pfof2, int &ilistupdated, int istepval=1, DescendantData *refdescen=NULL);
 ///similar to \ref CleanCrossMatch but for descendants
-void CleanCrossMatchDescendant(const int istepval, const long unsigned nhalos1, const long unsigned nhalos2, HaloData *&h1, HaloData *&h2, DescendantData *&pdescen);
+template<typename idtype> void CleanCrossMatchDescendant(const int istepval, const long unsigned nhalos1, const long unsigned nhalos2, HaloData<idtype> *&h1, HaloData<idtype> *&h2, DescendantData *&pdescen);
 ///similar to \ref UpdateRefProgenitors but for descendants
 void UpdateRefDescendants(Options &opt, const Int_t numhalos,DescendantData *&pref, DescendantData *&ptemp);
 ///builds the possible set of descendents using candidate progenitors
@@ -153,7 +153,7 @@ void BuildProgenitorBasedDescendantList(Int_t itimeprogen, Int_t itimedescen, In
 /// removes descendant links of individual halo 
 void RemoveLinksProgenitorBasedDescendantList(Int_t itimedescen, Int_t ihaloindex, ProgenitorData &pprogen, DescendantDataProgenBased **&pprogendescen);
 ///Cleans up progenitor list using candidate descendent list build using progenitor search. Ensures objects ony have a single descendant
-void CleanProgenitorsUsingDescendants(Int_t i, HaloTreeData *&pht, DescendantDataProgenBased **&pprogendescen, ProgenitorData **&pprogen);
+template<typename idtype> void CleanProgenitorsUsingDescendants(Int_t i, HaloTreeData<idtype> *&pht, DescendantDataProgenBased **&pprogendescen, ProgenitorData **&pprogen);
 
 //@}
 
@@ -162,20 +162,20 @@ void CleanProgenitorsUsingDescendants(Int_t i, HaloTreeData *&pht, DescendantDat
 //@{
 ///generate a map for particle ids to index and store it in the set, which can be searched to 
 ///relate pid to index
-map<long long, long long> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, HaloTreeData *&pht);
+template<typename idtype> map<idtype, idtype> ConstructMemoryEfficientPIDStoIndexMap(Options &opt, HaloTreeData<idtype> *&pht);
 ///map particle id to index position
-void MapPIDStoIndex(Options &opt, HaloTreeData *&pht, map<long long, long long> &);
+template<typename idtype> void MapPIDStoIndex(Options &opt, HaloTreeData<idtype> *&pht, map<idtype, idtype> &);
 ///map particle id to index position
-void MapPIDStoIndex(Options &opt, HaloTreeData *&pht);
+template<typename idtype> void MapPIDStoIndex(Options &opt, HaloTreeData<idtype> *&pht);
 
 ///make sure particle ids are acceptable values for generating links
-void IDcheck(Options &opt,HaloTreeData *&pht);
+template<typename idtype> void IDcheck(Options &opt,HaloTreeData<idtype> *&pht);
 
-void simplemap(long unsigned &i);
+template<typename idtype> void simplemap(idtype &i);
 
 //adjust the mappable halo ids by adding a temporally unique value to each id
 //useful to ensure that ids between VELOCIraptor and the tree match
-void UpdateHaloIDs(Options &opt, HaloTreeData *&pht);
+template<typename idtype> void UpdateHaloIDs(Options &opt, HaloTreeData<idtype> *&pht);
 
 //@}
 
