@@ -495,6 +495,11 @@ struct Options
     int iuseextradarkparticles;
     //@}
 
+    /// if want full spherical overdensity, factor by which size is multiplied to get
+    ///bucket of particles
+    Double_t SphericalOverdensitySeachFac;
+    ///if want to the particle IDs that are within the SO overdensity of a halo
+    int iSphericalOverdensityPartList;
     /// \name Extra variables to store information useful in zoom simluations
     //@{
     /// store the lowest dark matter particle mass
@@ -636,6 +641,9 @@ struct Options
 
         lengthtokpc30pow2=30.0*30.0;
         lengthtokpc30pow2=50.0*50.0;
+
+        SphericalOverdensitySeachFac=1.25;
+        iSphericalOverdensityPartList=0;
 
         mpipartfac=0.1;
 #if USEHDF
